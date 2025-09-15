@@ -13,6 +13,8 @@ This project combines **Embedded Systems + FreeRTOS + AI-powered visualization**
 - 🔹 **Clean visualization** for better understanding of FreeRTOS concepts  
 
 ---
+## wokwi simulation 
+<img width="1900" height="967" alt="image" src="https://github.com/user-attachments/assets/59e0d530-ed69-4f52-a526-5ec750918e35" />
 
 ---
 
