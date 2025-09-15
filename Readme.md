@@ -14,11 +14,6 @@ This project combines **Embedded Systems + FreeRTOS + AI-powered visualization**
 
 ---
 
-## 📂 Demo / Live Preview
-👉 [Open Interactive Dashboard](LED_BLINK.html)  
-
-
-
 ---
 
 ## 🛠️ Tech Stack
@@ -45,8 +40,3 @@ This project combines **Embedded Systems + FreeRTOS + AI-powered visualization**
 
 ---
 
-## 🔧 Installation & Usage
-1. Clone this repository:  
-   ```bash
-   git clone https://github.com/your-username/FreeRTOS-ESP32-LED-Blink.git
-   cd FreeRTOS-ESP32-LED-Blink
