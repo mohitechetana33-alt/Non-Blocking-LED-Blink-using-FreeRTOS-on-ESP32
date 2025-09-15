@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS ESP32 Non-blocking LED Blink - Wokwi Simulation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .simulation-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .esp32-board {
+            background: #2c3e50;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .board-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ecf0f1;
+        }
+        
+        .pin-layout {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .pin {
+            background: #34495e;
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 12px;
+            border: 2px solid #7f8c8d;
+        }
+        
+        .pin.gpio23 {
+            background: #e74c3c;
+            color: white;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 50% { opacity: 1; }
+            25%, 75% { opacity: 0.3; }
+        }
+        
+        .led-section {
+            text-align: center;
+        }
+        
+        .led {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 20px auto;
+            background: #2c3e50;
+            border: 4px solid #34495e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+        }
+        
+        .led.on {
+            background: radial-gradient(circle, #ff4757, #ff3742);
+            border-color: #ff6b7a;
+            box-shadow: 0 0 30px rgba(255, 71, 87, 0.6);
+            color: white;
+        }
+        
+        .led.off {
+            background: #2c3e50;
+            border-color: #34495e;
+            color: #7f8c8d;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #00b894, #00a085);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #fdcb6e, #e17055);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(253, 203, 110, 0.4);
+        }
+        
+        .status-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .status-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .status-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #74b9ff;
+        }
+        
+        .code-section {
+            background: #2d3748;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        
+        .code-title {
+            color: #4fd1c7;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .wokwi-link {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .wokwi-btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .wokwi-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.4);
+        }
+        
+        .task-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .task-info h4 {
+            margin: 0 0 10px 0;
+            color: #74b9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 FreeRTOS ESP32 Non-blocking LED Blink</h1>
+        
+        <div class="simulation-area">
+            <div class="esp32-board">
+                <div class="board-title">ESP32 DevKit V1</div>
+                <div class="pin-layout">
+                    <div class="pin">3V3</div>
+                    <div class="pin">GND</div>
+                    <div class="pin">GPIO 2</div>
+                    <div class="pin">GPIO 4</div>
+                    <div class="pin gpio23">GPIO 23</div>
+                    <div class="pin">GPIO 22</div>
+                    <div class="pin">GPIO 21</div>
+                    <div class="pin">GPIO 19</div>
+                    <div class="pin">GPIO 18</div>
+                    <div class="pin">GPIO 5</div>
+                    <div class="pin">EN</div>
+                    <div class="pin">VP</div>
+                </div>
+            </div>
+            
+            <div class="led-section">
+                <h3>LED Status (GPIO 23)</h3>
+                <div class="led off" id="mainLed">OFF</div>
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="startSimulation()">▶️ Start</button>
+                    <button class="btn btn-secondary" onclick="stopSimulation()">⏸️ Stop</button>
+                    <button class="btn btn-secondary" onclick="resetSimulation()">🔄 Reset</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-panel">
+            <h3>FreeRTOS Task Monitor</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div>Uptime (ms)</div>
+                    <div class="status-value" id="uptime">0</div>
+                </div>
+                <div class="status-item">
+                    <div>LED Toggles</div>
+                    <div class="status-value" id="toggleCount">0</div>
+                </div>
+                <div class="status-item">
+                    <div>Task 1 Cycles</div>
+                    <div class="status-value" id="task1Cycles">0</div>
+                </div>
+                <div class="status-item">
+                    <div>Task 2 Cycles</div>
+                    <div class="status-value" id="task2Cycles">0</div>
+                </div>
+            </div>
+            
+            <div class="task-info">
+                <h4>📋 Active FreeRTOS Tasks:</h4>
+                <div id="taskList">
+                    <div>🔸 BlinkTask - Priority: 1 - State: Running</div>
+                    <div>🔸 SensorTask - Priority: 1 - State: Running</div>
+                    <div>🔸 SerialTask - Priority: 2 - State: Running</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-section">
+            <div class="code-title">📋 Arduino Code (sketch.ino)</div>
+            <pre><code>#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+const int ledPin = 23;
+unsigned long previousMillis = 0;
+const unsigned long interval = 1000UL;
+bool ledState = false;
+int toggleCount = 0;
+
+// Task handles
+TaskHandle_t BlinkTaskHandle = NULL;
+TaskHandle_t SensorTaskHandle = NULL;
+TaskHandle_t SerialTaskHandle = NULL;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(ledPin, OUTPUT);
+  
+  // Create FreeRTOS tasks
+  xTaskCreate(
+    BlinkTask,          // Task function
+    "BlinkTask",        // Task name
+    2048,              // Stack size
+    NULL,              // Parameters
+    1,                 // Priority
+    &BlinkTaskHandle   // Task handle
+  );
+  
+  xTaskCreate(
+    SensorTask,
+    "SensorTask",
+    2048,
+    NULL,
+    1,
+    &SensorTaskHandle
+  );
+  
+  xTaskCreate(
+    SerialTask,
+    "SerialTask",
+    2048,
+    NULL,
+    2,
+    &SerialTaskHandle
+  );
+  
+  Serial.println("FreeRTOS Tasks Created!");
+}
+
+void loop() {
+  // Empty - FreeRTOS scheduler handles everything
+  vTaskDelete(NULL);
+}
+
+// Non-blocking LED blink task
+void BlinkTask(void *parameter) {
+  for(;;) {
+    unsigned long currentMillis = millis();
+    
+    if (currentMillis - previousMillis >= interval) {
+      previousMillis = currentMillis;
+      ledState = !ledState;
+      digitalWrite(ledPin, ledState ? HIGH : LOW);
+      toggleCount++;
+      
+      Serial.printf("LED: %s (Toggle #%d)\\n", 
+                   ledState ? "ON" : "OFF", toggleCount);
+    }
+    
+    // Yield to other tasks
+    vTaskDelay(1 / portTICK_PERIOD_MS);
+  }
+}
+
+// Simulated sensor reading task
+void SensorTask(void *parameter) {
+  int sensorValue = 0;
+  for(;;) {
+    sensorValue = random(0, 1024);
+    Serial.printf("Sensor Reading: %d\\n", sensorValue);
+    
+    // Task runs every 2 seconds
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+  }
+}
+
+// Serial communication task
+void SerialTask(void *parameter) {
+  for(;;) {
+    Serial.printf("Uptime: %lu ms | Free Heap: %d bytes\\n", 
+                 millis(), ESP.getFreeHeap());
+    
+    // Task runs every 5 seconds
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
+  }
+}</code></pre>
+        </div>
+        
+        <div class="code-section">
+            <div class="code-title">🔧 Wokwi diagram.json</div>
+            <pre><code>{
+  "version": 1,
+  "author": "Claude AI",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-esp32-devkit-v1",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -6,
+      "left": 178.8,
+      "attrs": { "color": "red" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 29.35,
+      "left": 144,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX0", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX0", "$serialMonitor:TX", "", [] ],
+    [ "r1:1", "led1:A", "red", [ "h0" ] ],
+    [ "led1:C", "esp:GND.1", "black", [ "v0" ] ],
+    [ "esp:D23", "r1:2", "red", [ "h0" ] ]
+  ],
+  "dependencies": {}
+}</code></pre>
+        </div>
+        
+        <div class="wokwi-link">
+            <h3>🎯 Run this project in Wokwi:</h3>
+            <p>Copy the Arduino code and diagram.json above, then paste them into a new Wokwi project!</p>
+            <a href="https://wokwi.com/projects/new/esp32" target="_blank" class="wokwi-btn">
+                🚀 Open Wokwi ESP32 Project
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let startTime = 0;
+        let ledState = false;
+        let toggleCount = 0;
+        let task1Cycles = 0;
+        let task2Cycles = 0;
+        let animationId;
+        
+        function startSimulation() {
+            if (!isRunning) {
+                isRunning = true;
+                startTime = Date.now();
+                animate();
+            }
+        }
+        
+        function stopSimulation() {
+            isRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+        
+        function resetSimulation() {
+            stopSimulation();
+            ledState = false;
+            toggleCount = 0;
+            task1Cycles = 0;
+            task2Cycles = 0;
+            updateDisplay();
+            
+            const led = document.getElementById('mainLed');
+            led.className = 'led off';
+            led.textContent = 'OFF';
+        }
+        
+        function animate() {
+            if (!isRunning) return;
+            
+            const currentTime = Date.now();
+            const uptime = currentTime - startTime;
+            
+            // LED blink logic (1000ms interval)
+            if (uptime % 1000 < 50 && uptime > 0) {
+                ledState = !ledState;
+                if (ledState) toggleCount++;
+                
+                const led = document.getElementById('mainLed');
+                if (ledState) {
+                    led.className = 'led on';
+                    led.textContent = 'ON';
+                } else {
+                    led.className = 'led off';
+                    led.textContent = 'OFF';
+                }
+            }
+            
+            // Simulate task cycles
+            task1Cycles = Math.floor(uptime / 100);
+            task2Cycles = Math.floor(uptime / 200);
+            
+            updateDisplay();
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        function updateDisplay() {
+            const uptime = isRunning ? Date.now() - startTime : 0;
+            document.getElementById('uptime').textContent = uptime;
+            document.getElementById('toggleCount').textContent = toggleCount;
+            document.getElementById('task1Cycles').textContent = task1Cycles;
+            document.getElementById('task2Cycles').textContent = task2Cycles;
+        }
+        
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>
